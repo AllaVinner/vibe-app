@@ -55,8 +55,6 @@ import {
   Alert24Regular,
 } from '@fluentui/react-icons';
 
-
-// Component for displaying analytics with Plotly charts
 import Plot from 'react-plotly.js';
 
 interface RootContextProps {

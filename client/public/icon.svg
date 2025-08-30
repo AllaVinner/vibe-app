@@ -1,0 +1,21 @@
+<!-- Minimal Network Favicon - transparent background -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 100 100" fill="none" role="img" aria-labelledby="title desc">
+<title id="title">Minimal Network Favicon</title>
+<desc id="desc">A clean, minimal network icon with nodes of different sizes and colors connected by lines. Transparent background.</desc>
+
+
+<!-- Connections -->
+<line x1="20" y1="30" x2="50" y2="20" stroke="#444" stroke-width="2" />
+<line x1="50" y1="20" x2="80" y2="30" stroke="#444" stroke-width="2" />
+<line x1="20" y1="30" x2="35" y2="70" stroke="#444" stroke-width="2" />
+<line x1="35" y1="70" x2="70" y2="65" stroke="#444" stroke-width="2" />
+<line x1="70" y1="65" x2="80" y2="30" stroke="#444" stroke-width="2" />
+
+<!-- Nodes -->
+<circle cx="20" cy="30" r="14" fill="#0ea5e9" />
+<circle cx="50" cy="20" r="8" fill="#f97316" />
+<circle cx="80" cy="30" r="12" fill="#84cc16" />
+<circle cx="35" cy="70" r="18" fill="#a855f7" />
+<circle cx="70" cy="65" r="10" fill="#ef4444" />
+
+</svg>
