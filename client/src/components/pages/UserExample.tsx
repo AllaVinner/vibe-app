@@ -18,13 +18,6 @@ import {
 import React from 'react';
 
 // Types for our data structures
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
-
 const useStyles = makeStyles({
   errorContainer: {
     margin: '16px 0',
@@ -65,7 +58,7 @@ const UsersContent: React.FC = () => {
     return (
       <div className={styles.errorContainer}>
         <MessageBar intent="error">
-          <Text>Error loading users: {error.message}</Text>
+          <Text>Error loading users: {error}</Text>
           <Button appearance="primary" size="small">
             Retry
           </Button>
