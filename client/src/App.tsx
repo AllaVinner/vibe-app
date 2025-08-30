@@ -1,5 +1,5 @@
 import * as Plotly from 'plotly.js-dist-min';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import {
   FluentProvider,
   webLightTheme,
@@ -30,6 +30,7 @@ import {
   ToolbarButton,
   Avatar,
 } from '@fluentui/react-components';
+import type { Theme } from "@fluentui/react-components";
 import {
   Navigation24Regular,
   Home24Regular,
@@ -58,8 +59,24 @@ import {
 // Component for displaying analytics with Plotly charts
 import Plot from 'react-plotly.js';
 
+interface RootContextProps {
+  theme: Theme;
+}
+
+const RootContext = createContext<RootContextProps | undefined>(undefined);
+
+const useRootContext = () => {
+  const ctx = useContext(RootContext);
+  if (!ctx) {
+    throw new Error("useRootContext must be used inside a ThemeProvider");
+  }
+  return ctx;
+};
+
+
 function PlotlyChartExample() {
   const [chartType, setChartType] = useState('line');
+  const { theme } = useRootContext();
 
   // Sample data for different chart types
   const lineData = [
@@ -107,7 +124,7 @@ function PlotlyChartExample() {
       mode: 'markers',
       type: 'scatter',
       name: 'Dataset 1',
-      marker: { 
+      marker: {
         color: '#f59e0b',
         size: 10,
         opacity: 0.7
@@ -119,7 +136,7 @@ function PlotlyChartExample() {
       mode: 'markers',
       type: 'scatter',
       name: 'Dataset 2',
-      marker: { 
+      marker: {
         color: '#ec4899',
         size: 10,
         opacity: 0.7
@@ -140,7 +157,7 @@ function PlotlyChartExample() {
 
   // Get current data based on chart type
   const getCurrentData = () => {
-    switch(chartType) {
+    switch (chartType) {
       case 'line': return lineData;
       case 'bar': return barData;
       case 'scatter': return scatterData;
@@ -160,7 +177,10 @@ function PlotlyChartExample() {
     ...(chartType === 'pie' ? {} : {
       xaxis: { title: 'X Axis' },
       yaxis: { title: 'Y Axis' }
-    })
+    }),
+    paper_bgcolor: theme.colorNeutralBackground1,
+    plot_bgcolor: theme.colorNeutralBackground1,
+    font: { color: theme.colorNeutralForeground1 },
   };
 
   // Plot configuration
@@ -174,14 +194,14 @@ function PlotlyChartExample() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Plotly React Example</h1>
-      
+
       {/* Chart Type Selector */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Chart Type:
         </label>
-        <select 
-          value={chartType} 
+        <select
+          value={chartType}
           onChange={(e) => setChartType(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -968,6 +988,8 @@ const App: React.FC = () => {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [globalError, setGlobalError] = useState<AppError | null>(null);
 
+  const currentTheme = isDarkMode ? webDarkTheme : webLightTheme
+
   // Global error handler
   const handleGlobalError = useCallback((error: AppError) => {
     setGlobalError(error);
@@ -1104,143 +1126,141 @@ const App: React.FC = () => {
   };
 
   return (
-    <FluentProvider theme={isDarkMode ? webDarkTheme : webLightTheme}>
+    <FluentProvider theme={currentTheme}>
       <ErrorBoundary>
-        <div className={styles.root}>
-          {/* Global Error Message */}
-          {globalError && (
-            <MessageBar
-              intent="error"
-              actions={
+        <RootContext.Provider value={{ theme: currentTheme }} >
+          <div className={styles.root}>
+            {/* Global Error Message */}
+            {globalError && (
+              <MessageBar
+                intent="error"
+                actions={
+                  <Button
+                    appearance="transparent"
+                    icon={<DismissCircle24Regular />}
+                    onClick={clearGlobalError}
+                    size="small"
+                  />
+                }
+              >
+                {globalError.message}
+              </MessageBar>
+            )}
+
+            {/* Navigation Bar */}
+            <header className={styles.navbar}>
+              <div className={styles.navLeft}>
                 <Button
-                  appearance="transparent"
-                  icon={<DismissCircle24Regular />}
-                  onClick={clearGlobalError}
-                  size="small"
+                  appearance="subtle"
+                  icon={<PanelLeftRegular />}
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  aria-label="Toggle sidebar"
                 />
-              }
-            >
-              {globalError.message}
-            </MessageBar>
-          )}
+                <Title2>My Application</Title2>
+              </div>
 
-          {/* Navigation Bar */}
-          <header className={styles.navbar}>
-            <div className={styles.navLeft}>
-              <Button
-                appearance="subtle"
-                icon={<PanelLeftRegular />}
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                aria-label="Toggle sidebar"
-              />
-              <Title2>My Application</Title2>
-            </div>
+              <div className={styles.navRight}>
+                <ToggleButton
+                  checked={isDarkMode}
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  icon={isDarkMode ? <WeatherSunny24Regular /> : <WeatherMoon24Regular />}
+                  aria-label="Toggle theme"
+                />
 
-            <div className={styles.navRight}>
-              <ToggleButton
-                checked={isDarkMode}
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                icon={isDarkMode ? <WeatherSunny24Regular /> : <WeatherMoon24Regular />}
-                aria-label="Toggle theme"
-              />
+                <Menu>
+                  <MenuTrigger disableButtonEnhancement>
+                    <Avatar name="User Account" size={32} />
+                  </MenuTrigger>
+                  <MenuPopover>
+                    <MenuList>
+                      <MenuItem icon={<Person24Regular />}>Profile</MenuItem>
+                      <MenuItem icon={<Settings24Regular />}>Account Settings</MenuItem>
+                      <Divider />
+                      <MenuItem>Sign Out</MenuItem>
+                    </MenuList>
+                  </MenuPopover>
+                </Menu>
+              </div>
+            </header>
 
-              <Menu>
-                <MenuTrigger disableButtonEnhancement>
-                  <Avatar name="User Account" size={32} />
-                </MenuTrigger>
-                <MenuPopover>
-                  <MenuList>
-                    <MenuItem icon={<Person24Regular />}>Profile</MenuItem>
-                    <MenuItem icon={<Settings24Regular />}>Account Settings</MenuItem>
-                    <Divider />
-                    <MenuItem>Sign Out</MenuItem>
-                  </MenuList>
-                </MenuPopover>
-              </Menu>
-            </div>
-          </header>
+            {/* Main Container */}
+            <div className={styles.mainContainer}>
+              {/* Sidebar */}
+              <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarHidden : ''}`}>
+                <nav className={styles.sidebarContent}>
+                  <Text size={400} weight="semibold" style={{ marginBottom: '16px' }}>
+                    Navigation
+                  </Text>
 
-          {/* Main Container */}
-          <div className={styles.mainContainer}>
-            {/* Sidebar */}
-            <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarHidden : ''}`}>
-              <nav className={styles.sidebarContent}>
-                <Text size={400} weight="semibold" style={{ marginBottom: '16px' }}>
-                  Navigation
-                </Text>
-
-                {navigationItems.map((item) => (
-                  <div key={item.id}>
-                    {/* Main navigation item */}
-                    <div
-                      className={`${styles.sidebarItem} ${
-                        (activeSection === item.id || 
+                  {navigationItems.map((item) => (
+                    <div key={item.id}>
+                      {/* Main navigation item */}
+                      <div
+                        className={`${styles.sidebarItem} ${(activeSection === item.id ||
                           (item.subItems && item.subItems.some(sub => sub.id === activeSection)))
                           ? styles.sidebarItemActive : ''
-                        }`}
-                      onClick={() => handleNavigationClick(item.id, !!item.subItems)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleNavigationClick(item.id, !!item.subItems);
-                        }
-                      }}
-                    >
-                      {item.icon}
-                      <Text>{item.label}</Text>
+                          }`}
+                        onClick={() => handleNavigationClick(item.id, !!item.subItems)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleNavigationClick(item.id, !!item.subItems);
+                          }
+                        }}
+                      >
+                        {item.icon}
+                        <Text>{item.label}</Text>
+                        {item.subItems && (
+                          <div
+                            className={`${styles.expandIcon} ${expandedItems.has(item.id) ? styles.expandIconRotated : ''
+                              }`}
+                          >
+                            <ChevronRight24Regular />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sub-items */}
                       {item.subItems && (
                         <div
-                          className={`${styles.expandIcon} ${
-                            expandedItems.has(item.id) ? styles.expandIconRotated : ''
+                          className={`${styles.subItemsContainer} ${expandedItems.has(item.id) ? styles.subItemsVisible : styles.subItemsHidden
                             }`}
                         >
-                          <ChevronRight24Regular />
+                          {item.subItems.map((subItem) => (
+                            <div
+                              key={subItem.id}
+                              className={`${styles.sidebarSubItem} ${activeSection === subItem.id ? styles.sidebarSubItemActive : ''
+                                }`}
+                              onClick={() => handleSubItemClick(subItem.id)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  handleSubItemClick(subItem.id);
+                                }
+                              }}
+                            >
+                              {subItem.icon || <div style={{ width: '24px', height: '24px' }} />}
+                              <Text size={300}>{subItem.label}</Text>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
+                  ))}
+                </nav>
+              </aside>
 
-                    {/* Sub-items */}
-                    {item.subItems && (
-                      <div
-                        className={`${styles.subItemsContainer} ${
-                          expandedItems.has(item.id) ? styles.subItemsVisible : styles.subItemsHidden
-                          }`}
-                      >
-                        {item.subItems.map((subItem) => (
-                          <div
-                            key={subItem.id}
-                            className={`${styles.sidebarSubItem} ${
-                              activeSection === subItem.id ? styles.sidebarSubItemActive : ''
-                              }`}
-                            onClick={() => handleSubItemClick(subItem.id)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                handleSubItemClick(subItem.id);
-                              }
-                            }}
-                          >
-                            {subItem.icon || <div style={{ width: '24px', height: '24px' }} />}
-                            <Text size={300}>{subItem.label}</Text>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </nav>
-            </aside>
-
-            {/* Main Content Area */}
-            <main className={styles.mainContent}>
-              {renderMainContent()}
-            </main>
+              {/* Main Content Area */}
+              <main className={styles.mainContent}>
+                {renderMainContent()}
+              </main>
+            </div>
           </div>
-        </div>
+        </RootContext.Provider>
       </ErrorBoundary>
     </FluentProvider>
   );
