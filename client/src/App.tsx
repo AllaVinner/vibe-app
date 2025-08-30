@@ -40,6 +40,17 @@ import {
   WeatherSunny24Regular,
   PanelLeftRegular,
   DismissCircle24Regular,
+  ChevronDown24Regular,
+  ChevronRight24Regular,
+  PersonAccounts24Regular,
+  PersonAdd24Regular,
+  LockClosed24Regular,
+  ChartMultiple24Regular,
+  DataUsage24Regular,
+  DocumentAdd24Regular,
+  FolderOpen24Regular,
+  Color24Regular,
+  Alert24Regular,
 } from '@fluentui/react-icons';
 
 // Types for our data structures
@@ -48,6 +59,19 @@ interface User {
   name: string;
   email: string;
   role: string;
+}
+
+interface NavigationItem {
+  id: string;
+  label: string;
+  icon: React.ReactElement;
+  subItems?: NavigationSubItem[];
+}
+
+interface NavigationSubItem {
+  id: string;
+  label: string;
+  icon?: React.ReactElement;
 }
 
 interface ApiResponse<T> {
@@ -188,6 +212,7 @@ const useStyles = makeStyles({
     ...shorthands.padding('8px', '12px'),
     borderRadius: tokens.borderRadiusMedium,
     cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
     '&:hover': {
       backgroundColor: tokens.colorNeutralBackground1Hover,
     },
@@ -195,6 +220,40 @@ const useStyles = makeStyles({
   sidebarItemActive: {
     backgroundColor: tokens.colorBrandBackground2,
     color: tokens.colorBrandForeground2,
+  },
+  sidebarSubItem: {
+    display: 'flex',
+    alignItems: 'center',
+    ...shorthands.gap('8px'),
+    ...shorthands.padding('6px', '12px', '6px', '40px'),
+    borderRadius: tokens.borderRadiusMedium,
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+    fontSize: tokens.fontSizeBase200,
+    '&:hover': {
+      backgroundColor: tokens.colorNeutralBackground1Hover,
+    },
+  },
+  sidebarSubItemActive: {
+    backgroundColor: tokens.colorBrandBackground2,
+    color: tokens.colorBrandForeground2,
+  },
+  expandIcon: {
+    marginLeft: 'auto',
+    transition: 'transform 0.2s ease',
+  },
+  expandIconRotated: {
+    transform: 'rotate(90deg)',
+  },
+  subItemsContainer: {
+    overflow: 'hidden',
+    transition: 'max-height 0.3s ease-in-out',
+  },
+  subItemsVisible: {
+    maxHeight: '300px',
+  },
+  subItemsHidden: {
+    maxHeight: '0px',
   },
   mainContent: {
     flex: 1,
@@ -229,13 +288,52 @@ const useStyles = makeStyles({
   },
 });
 
-// Sidebar navigation items
-const navigationItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: <Home24Regular /> },
-  { id: 'users', label: 'Users', icon: <Person24Regular /> },
-  { id: 'analytics', label: 'Analytics', icon: <DataHistogram24Regular /> },
-  { id: 'documents', label: 'Documents', icon: <Document24Regular /> },
-  { id: 'settings', label: 'Settings', icon: <Settings24Regular /> },
+// Sidebar navigation items with subsections
+const navigationItems: NavigationItem[] = [
+  { 
+    id: 'dashboard', 
+    label: 'Dashboard', 
+    icon: <Home24Regular /> 
+  },
+  { 
+    id: 'users', 
+    label: 'Users', 
+    icon: <Person24Regular />,
+    subItems: [
+      { id: 'users.list', label: 'All Users', icon: <PersonAccounts24Regular /> },
+      { id: 'users.add', label: 'Add User', icon: <PersonAdd24Regular /> },
+      { id: 'users.roles', label: 'User Roles', icon: <LockClosed24Regular /> },
+    ]
+  },
+  { 
+    id: 'analytics', 
+    label: 'Analytics', 
+    icon: <DataHistogram24Regular />,
+    subItems: [
+      { id: 'analytics.overview', label: 'Overview', icon: <ChartMultiple24Regular /> },
+      { id: 'analytics.usage', label: 'Usage Stats', icon: <DataUsage24Regular /> },
+      { id: 'analytics.reports', label: 'Reports' },
+    ]
+  },
+  { 
+    id: 'documents', 
+    label: 'Documents', 
+    icon: <Document24Regular />,
+    subItems: [
+      { id: 'documents.recent', label: 'Recent Files', icon: <DocumentAdd24Regular /> },
+      { id: 'documents.folders', label: 'Folders', icon: <FolderOpen24Regular /> },
+    ]
+  },
+  { 
+    id: 'settings', 
+    label: 'Settings', 
+    icon: <Settings24Regular />,
+    subItems: [
+      { id: 'settings.general', label: 'General' },
+      { id: 'settings.appearance', label: 'Appearance', icon: <Color24Regular /> },
+      { id: 'settings.notifications', label: 'Notifications', icon: <Alert24Regular /> },
+    ]
+  },
 ];
 
 // Component for displaying dashboard content
@@ -368,11 +466,16 @@ const UsersContent: React.FC = () => {
 };
 
 // Generic content component for other sections
-const GenericContent: React.FC<{ title: string; description: string }> = ({ title, description }) => {
+const GenericContent: React.FC<{ title: string; description: string; sectionId: string }> = ({ 
+  title, 
+  description, 
+  sectionId 
+}) => {
   return (
     <div>
       <Title1>{title}</Title1>
       <Body1>{description}</Body1>
+      <Text>Section ID: {sectionId}</Text>
       <Text>This section is ready for your custom content implementation.</Text>
     </div>
   );
@@ -424,6 +527,7 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [globalError, setGlobalError] = useState<AppError | null>(null);
 
   // Global error handler
@@ -437,6 +541,49 @@ const App: React.FC = () => {
     setGlobalError(null);
   }, []);
 
+  // Toggle expanded state for navigation items
+  const toggleExpanded = useCallback((itemId: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Handle navigation item click
+  const handleNavigationClick = useCallback((itemId: string, hasSubItems: boolean) => {
+    if (hasSubItems) {
+      toggleExpanded(itemId);
+    } else {
+      setActiveSection(itemId);
+    }
+  }, [toggleExpanded]);
+
+  // Handle sub-item click
+  const handleSubItemClick = useCallback((subItemId: string) => {
+    setActiveSection(subItemId);
+  }, []);
+
+  // Get title for current section
+  const getCurrentSectionTitle = useCallback(() => {
+    for (const item of navigationItems) {
+      if (item.id === activeSection) {
+        return item.label;
+      }
+      if (item.subItems) {
+        const subItem = item.subItems.find(sub => sub.id === activeSection);
+        if (subItem) {
+          return `${item.label} - ${subItem.label}`;
+        }
+      }
+    }
+    return 'Dashboard';
+  }, [activeSection]);
+
   // Render main content based on active section
   const renderMainContent = () => {
     try {
@@ -444,13 +591,71 @@ const App: React.FC = () => {
         case 'dashboard':
           return <DashboardContent />;
         case 'users':
+        case 'users.list':
           return <UsersContent />;
+        case 'users.add':
+          return <GenericContent 
+            title="Add New User" 
+            description="Create a new user account in the system." 
+            sectionId={activeSection}
+          />;
+        case 'users.roles':
+          return <GenericContent 
+            title="User Roles Management" 
+            description="Manage user roles and permissions." 
+            sectionId={activeSection}
+          />;
         case 'analytics':
-          return <GenericContent title="Analytics" description="View your application analytics and metrics." />;
+        case 'analytics.overview':
+          return <GenericContent 
+            title="Analytics Overview" 
+            description="View comprehensive analytics and insights." 
+            sectionId={activeSection}
+          />;
+        case 'analytics.usage':
+          return <GenericContent 
+            title="Usage Statistics" 
+            description="Detailed usage statistics and metrics." 
+            sectionId={activeSection}
+          />;
+        case 'analytics.reports':
+          return <GenericContent 
+            title="Analytics Reports" 
+            description="Generate and view detailed reports." 
+            sectionId={activeSection}
+          />;
         case 'documents':
-          return <GenericContent title="Documents" description="Manage your documents and files." />;
+        case 'documents.recent':
+          return <GenericContent 
+            title="Recent Documents" 
+            description="View your recently accessed documents." 
+            sectionId={activeSection}
+          />;
+        case 'documents.folders':
+          return <GenericContent 
+            title="Document Folders" 
+            description="Organize documents in folders." 
+            sectionId={activeSection}
+          />;
         case 'settings':
-          return <GenericContent title="Settings" description="Configure your application settings." />;
+        case 'settings.general':
+          return <GenericContent 
+            title="General Settings" 
+            description="Configure general application settings." 
+            sectionId={activeSection}
+          />;
+        case 'settings.appearance':
+          return <GenericContent 
+            title="Appearance Settings" 
+            description="Customize the application appearance." 
+            sectionId={activeSection}
+          />;
+        case 'settings.notifications':
+          return <GenericContent 
+            title="Notification Settings" 
+            description="Manage notification preferences." 
+            sectionId={activeSection}
+          />;
         default:
           return <DashboardContent />;
       }
@@ -531,21 +736,66 @@ const App: React.FC = () => {
                 </Text>
 
                 {navigationItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`${styles.sidebarItem} ${activeSection === item.id ? styles.sidebarItemActive : ''
+                  <div key={item.id}>
+                    {/* Main navigation item */}
+                    <div
+                      className={`${styles.sidebarItem} ${
+                        (activeSection === item.id || 
+                         (item.subItems && item.subItems.some(sub => sub.id === activeSection)))
+                          ? styles.sidebarItemActive : ''
                       }`}
-                    onClick={() => setActiveSection(item.id)}
+                      onClick={() => handleNavigationClick(item.id, !!item.subItems)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
-                        setActiveSection(item.id);
+                          e.preventDefault();
+                          handleNavigationClick(item.id, !!item.subItems);
                       }
                     }}
                   >
                     {item.icon}
                     <Text>{item.label}</Text>
+                      {item.subItems && (
+                        <div 
+                          className={`${styles.expandIcon} ${
+                            expandedItems.has(item.id) ? styles.expandIconRotated : ''
+                          }`}
+                        >
+                          <ChevronRight24Regular />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sub-items */}
+                    {item.subItems && (
+                      <div
+                        className={`${styles.subItemsContainer} ${
+                          expandedItems.has(item.id) ? styles.subItemsVisible : styles.subItemsHidden
+                        }`}
+                      >
+                        {item.subItems.map((subItem) => (
+                          <div
+                            key={subItem.id}
+                            className={`${styles.sidebarSubItem} ${
+                              activeSection === subItem.id ? styles.sidebarSubItemActive : ''
+                            }`}
+                            onClick={() => handleSubItemClick(subItem.id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleSubItemClick(subItem.id);
+                              }
+                            }}
+                          >
+                            {subItem.icon || <div style={{ width: '24px', height: '24px' }} />}
+                            <Text size={300}>{subItem.label}</Text>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </nav>
