@@ -615,7 +615,7 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    ...shorthands.padding('12px', '16px'),
+    padding: '12px 16px',
     backgroundColor: tokens.colorNeutralBackground1,
     borderBottomWidth: '1px',
     borderBottomStyle: 'solid',
@@ -625,12 +625,12 @@ const useStyles = makeStyles({
   navLeft: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('12px'),
+    gap: '12px',
   },
   navRight: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
+    gap: '8px',
   },
   mainContainer: {
     display: 'flex',
@@ -648,6 +648,7 @@ const useStyles = makeStyles({
     borderRightColor: tokens.colorNeutralStroke2,
     display: 'flex',
     flexDirection: 'column',
+    overflow: 'scroll',
     transition: 'margin-left 0.3s ease-in-out',
     position: 'relative',
     zIndex: 10,
@@ -656,16 +657,16 @@ const useStyles = makeStyles({
     marginLeft: '-280px',
   },
   sidebarContent: {
-    ...shorthands.padding('16px'),
+    padding: '16px',
     display: 'flex',
     flexDirection: 'column',
-    ...shorthands.gap('8px'),
+    gap: '8px',
   },
   sidebarItem: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
-    ...shorthands.padding('8px', '12px'),
+    gap: '8px',
+    padding: '8px 12px',
     borderRadius: tokens.borderRadiusMedium,
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
@@ -680,8 +681,8 @@ const useStyles = makeStyles({
   sidebarSubItem: {
     display: 'flex',
     alignItems: 'center',
-    ...shorthands.gap('8px'),
-    ...shorthands.padding('6px', '12px', '6px', '40px'),
+    gap: '8px',
+    padding: '6px 12px 6px 40px',
     borderRadius: tokens.borderRadiusMedium,
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
@@ -714,12 +715,12 @@ const useStyles = makeStyles({
   mainContent: {
     flex: 1,
     width: '100%',
-    ...shorthands.padding('24px'),
+    padding: '24px',
     overflow: 'auto',
     backgroundColor: tokens.colorNeutralBackground1,
   },
   errorContainer: {
-    ...shorthands.margin('16px', '0'),
+    margin: '16px 0',
   },
   loadingContainer: {
     display: 'flex',
@@ -727,20 +728,20 @@ const useStyles = makeStyles({
     alignItems: 'center',
     height: '200px',
     flexDirection: 'column',
-    ...shorthands.gap('16px'),
+    gap: '16px',
   },
   statsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    ...shorthands.gap('16px'),
-    ...shorthands.margin('24px', '0'),
+    gap: '16px',
+    margin: '24px 0',
   },
   statCard: {
-    ...shorthands.padding('20px'),
+    padding: '20px',
   },
   userCard: {
-    ...shorthands.margin('8px', '0'),
-    ...shorthands.padding('16px'),
+    margin: '8px 0',
+    padding: '16px',
   },
 });
 
