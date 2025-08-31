@@ -1,2 +1,1 @@
-if __name__ == "__main__":
-    from app.main import app
+from app.main import app
