@@ -28,6 +28,8 @@ import {
   WeatherMoon24Regular,
   WeatherSunny24Regular
 } from '@fluentui/react-icons';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
 
@@ -44,6 +46,23 @@ export const useRootContext = () => {
   }
   return ctx;
 };
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+      retry: (failureCount, error) => {
+        if (error.message.includes('HTTP 4')) return false;
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 
 interface AppError {
@@ -156,75 +175,78 @@ const App: React.FC = () => {
   return (
     <FluentProvider theme={currentTheme}>
       <ErrorBoundary>
-        <RootContext.Provider value={{ theme: currentTheme }} >
-          <div className={styles.root}>
-            {/* Global Error Message */}
-            {globalError && (
-              <MessageBar
-                intent="error"
-                actions={
+        <QueryClientProvider client={queryClient}>
+          <RootContext.Provider value={{ theme: currentTheme }} >
+            <div className={styles.root}>
+              {/* Global Error Message */}
+              {globalError && (
+                <MessageBar
+                  intent="error"
+                  actions={
+                    <Button
+                      appearance="transparent"
+                      icon={<DismissCircle24Regular />}
+                      onClick={clearGlobalError}
+                      size="small"
+                    />
+                  }
+                >
+                  {globalError.message}
+                </MessageBar>
+              )}
+
+              {/* Navigation Bar */}
+              <header className={styles.navbar}>
+                <div className={styles.navLeft}>
                   <Button
-                    appearance="transparent"
-                    icon={<DismissCircle24Regular />}
-                    onClick={clearGlobalError}
-                    size="small"
+                    appearance="subtle"
+                    icon={<PanelLeftRegular />}
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    aria-label="Toggle sidebar"
                   />
-                }
-              >
-                {globalError.message}
-              </MessageBar>
-            )}
+                  <Title2>My Application</Title2>
+                </div>
 
-            {/* Navigation Bar */}
-            <header className={styles.navbar}>
-              <div className={styles.navLeft}>
-                <Button
-                  appearance="subtle"
-                  icon={<PanelLeftRegular />}
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  aria-label="Toggle sidebar"
-                />
-                <Title2>My Application</Title2>
+                <div className={styles.navRight}>
+                  <ToggleButton
+                    checked={isDarkMode}
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    icon={isDarkMode ? <WeatherSunny24Regular /> : <WeatherMoon24Regular />}
+                    aria-label="Toggle theme"
+                  />
+
+                  <Menu>
+                    <MenuTrigger disableButtonEnhancement>
+                      <Avatar name="User Account" size={32} />
+                    </MenuTrigger>
+                    <MenuPopover>
+                      <MenuList>
+                        <MenuItem icon={<Person24Regular />}>Profile</MenuItem>
+                        <MenuItem icon={<Settings24Regular />}>Account Settings</MenuItem>
+                        <Divider />
+                        <MenuItem>Sign Out</MenuItem>
+                      </MenuList>
+                    </MenuPopover>
+                  </Menu>
+                </div>
+              </header>
+
+              {/* Main Container */}
+              <div className={styles.mainContainer}>
+                {/* Sidebar */}
+                <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarHidden : ''}`}>
+                  <SidebarNavigation setActiveSection={setActiveSection} activeSection={activeSection} />
+                </aside>
+
+                {/* Main Content Area */}
+                <main className={styles.mainContent}>
+                  {renderMainContent()}
+                </main>
               </div>
-
-              <div className={styles.navRight}>
-                <ToggleButton
-                  checked={isDarkMode}
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  icon={isDarkMode ? <WeatherSunny24Regular /> : <WeatherMoon24Regular />}
-                  aria-label="Toggle theme"
-                />
-
-                <Menu>
-                  <MenuTrigger disableButtonEnhancement>
-                    <Avatar name="User Account" size={32} />
-                  </MenuTrigger>
-                  <MenuPopover>
-                    <MenuList>
-                      <MenuItem icon={<Person24Regular />}>Profile</MenuItem>
-                      <MenuItem icon={<Settings24Regular />}>Account Settings</MenuItem>
-                      <Divider />
-                      <MenuItem>Sign Out</MenuItem>
-                    </MenuList>
-                  </MenuPopover>
-                </Menu>
-              </div>
-            </header>
-
-            {/* Main Container */}
-            <div className={styles.mainContainer}>
-              {/* Sidebar */}
-              <aside className={`${styles.sidebar} ${!isSidebarOpen ? styles.sidebarHidden : ''}`}>
-                <SidebarNavigation setActiveSection={setActiveSection} activeSection={activeSection} />
-              </aside>
-
-              {/* Main Content Area */}
-              <main className={styles.mainContent}>
-                {renderMainContent()}
-              </main>
             </div>
-          </div>
-        </RootContext.Provider>
+          </RootContext.Provider>
+          < ReactQueryDevtools />
+        </QueryClientProvider>
       </ErrorBoundary>
     </FluentProvider>
   );

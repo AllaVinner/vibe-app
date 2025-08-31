@@ -16,6 +16,7 @@ import {
   Title1
 } from '@fluentui/react-components';
 import React from 'react';
+import useGetHello from '../../api/useGetHello';
 
 // Types for our data structures
 const useStyles = makeStyles({
@@ -43,7 +44,9 @@ const UsersContent: React.FC = () => {
   const users = [
     { id: "a", name: "Joel", role: "boss", email: "j@me.com" }
   ]
-
+  const { data } = useGetHello()
+  console.log(data)
+  console.log("---")
 
   if (loading) {
     return (
@@ -66,7 +69,6 @@ const UsersContent: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div>
       <Title1>Users Management</Title1>
